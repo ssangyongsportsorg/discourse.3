@@ -12,7 +12,7 @@ ENV DISCOURSE_WORKER_CONCURRENCY=${DISCOURSE_WORKER_CONCURRENCY:-2}
 
 WORKDIR $DISCOURSE_ROOT
 
-RUN git clone https://github.com/discourse/discourse.git --branch $DISCOURSE_VERSION --single-branch $DISCOURSE_ROOT
+RUN git clone https://github.com/discourse/discourse.git --branch main --single-branch $DISCOURSE_ROOT
 
 RUN apt-get update && apt-get install -y \
     brotli \
@@ -40,7 +40,7 @@ RUN gem install foreman
 COPY install-nginx.sh /tmp/install-nginx.sh
 RUN chmod +x /tmp/install-nginx.sh && /tmp/install-nginx.sh && \
     cp config/nginx.sample.conf /etc/nginx/conf.d/discourse.conf && \
-    sed -i "s/^  server_name enter\.your\.web\.hostname\.here;/  server_name $DISCOURSE_HOSTNAME;/" /etc/nginx/conf.d/discourse.conf && \
+    sed -i "s/^  server_name enter\.your\.web\.hostname\.here;/  server_name discourse-6g16.onrender.com;/" /etc/nginx/conf.d/discourse.conf && \
     mkdir -p /var/nginx/cache/
 
 # Install Redis

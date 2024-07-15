@@ -4,7 +4,7 @@ ARG RENDER_EXTERNAL_HOSTNAME
 ARG CUSTOM_DOMAIN
 ARG DISCOURSE_WORKER_CONCURRENCY
 
-ENV DISCOURSE_HOSTNAME=https://discourse-6g16.onrender.com
+ENV DISCOURSE_HOSTNAME=${CUSTOM_DOMAIN:-$RENDER_EXTERNAL_HOSTNAME}
 ENV RAILS_ENV=production
 ENV DISCOURSE_VERSION=v2.6.3
 ENV DISCOURSE_ROOT=/var/www/discourse
@@ -24,14 +24,21 @@ RUN apt-get update && apt-get install -y \
     optipng \
     pngquant \
     postgresql-client \
-    vim
+    vim \
+    build-essential \
+    libpcre3 \
+    libpcre3-dev \
+    zlib1g \
+    zlib1g-dev \
+    libssl-dev
+
 RUN npm install -g svgo
 RUN bundle config set path vendor/bundle/ && bundle install
 RUN gem install foreman
 
 # Configure NGINX
 COPY install-nginx.sh /tmp/install-nginx.sh
-RUN /tmp/install-nginx.sh && \
+RUN chmod +x /tmp/install-nginx.sh && /tmp/install-nginx.sh && \
     cp config/nginx.sample.conf /etc/nginx/conf.d/discourse.conf && \
     sed -i "s/^  server_name enter\.your\.web\.hostname\.here;/  server_name $DISCOURSE_HOSTNAME;/" /etc/nginx/conf.d/discourse.conf && \
     mkdir -p /var/nginx/cache/
@@ -39,7 +46,7 @@ RUN /tmp/install-nginx.sh && \
 # Install Redis
 COPY install-redis.sh /tmp/install-redis.sh
 COPY redis.conf .
-RUN /tmp/install-redis.sh
+RUN chmod +x /tmp/install-redis.sh && /tmp/install-redis.sh
 
 # Render offers free, fully managed SSL, so set default web setting to force HTTPS
 RUN perl -i -p0e 's/  force_https:\n    default: false/  force_https:\n    default: true/' config/site_settings.yml
